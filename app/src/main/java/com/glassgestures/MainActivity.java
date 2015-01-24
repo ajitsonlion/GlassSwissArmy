@@ -12,6 +12,13 @@ import com.google.android.glass.media.Sounds;
 import com.google.android.glass.widget.CardBuilder;
 import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
+import com.ubhave.sensormanager.ESException;
+import com.ubhave.sensormanager.ESSensorManager;
+import com.ubhave.sensormanager.ESSensorManagerInterface;
+import com.ubhave.sensormanager.SensorDataListener;
+import com.ubhave.sensormanager.data.SensorData;
+import com.ubhave.sensormanager.data.pull.GyroscopeData;
+import com.ubhave.sensormanager.sensors.SensorUtils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -33,7 +40,7 @@ import java.util.ArrayList;
 
 
 
-public class MainActivity extends Activity implements SensorEventListener,HeadGestureDetector.OnHeadGestureListener,ShakeDetector.Listener
+public class MainActivity extends Activity implements SensorEventListener,HeadGestureDetector.OnHeadGestureListener,ShakeDetector.Listener,ESSensorManagerInterface
 
 {
 
@@ -48,6 +55,7 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
     private EyeGesturesHelper meyeGesturesHelper;
     SocketIOSingelton socketIOSingelton;
     Socket socket;
+    ESSensorManager sensorManager;
 
     @Override
     protected void onCreate(Bundle bundle) {
@@ -60,7 +68,12 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
         mEyeGestureManager = EyeGestureManager.from(this);
         mEyeGestureListener = new EyeGestureListener();
         meyeGesturesHelper=new EyeGesturesHelper(mEyeGestureListener,mEyeGestureManager);
-        addcard();
+        try {
+              sensorManager = ESSensorManager.getSensorManager(this);
+
+        } catch (ESException e) {
+            e.printStackTrace();
+        }
 
         mCardScroller = new CardScrollView(this);
         mCardScroller.setAdapter(new CardScrollAdapter() {
@@ -118,7 +131,6 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
                 this,
                 mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
                 SensorManager.SENSOR_DELAY_FASTEST);
-
     }
 
     @Override
@@ -132,6 +144,10 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
     @Override
     protected void onResume() {
         super.onResume();
+        try {
+         } catch (Exception e) {
+            e.printStackTrace();
+        }
         meyeGesturesHelper.registerEyeGestures();
         mCardScroller.activate();
         mHeadGestureDetector.start();
@@ -170,8 +186,7 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
     @Override
     public void hearShake() {
 
-        addcard();
-        Toast.makeText(this,"Card Added",Toast.LENGTH_SHORT).show();
+
 
     }
 
@@ -192,7 +207,16 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
 
     public void addcard(){
         CardBuilder card = new CardBuilder(this, CardBuilder.Layout.TEXT);
+
         card.setText(++id+"");
+        try {
+            SensorData sensorData=getDataFromSensor(SensorUtils.SENSOR_TYPE_ACCELEROMETER);
+
+            card.setText( sensorData.getPrevSensorData().toString()+"");
+            
+        } catch (ESException e) {
+            e.printStackTrace();
+        }
         cards.add(card);
 
     }
@@ -201,12 +225,68 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
     @Override
     public void onSensorChanged(SensorEvent event) {
 
+
+        if (event.sensor.getType()==SensorUtils.SENSOR_TYPE_GYROSCOPE){
+            Log.v("SENSOR",""+event.sensor.getName());
+        }
+
+
+
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+
+    @Override
+    public int subscribeToSensorData(int i, SensorDataListener sensorDataListener) throws ESException {
+        return 0;
+    }
+
+    @Override
+    public void unsubscribeFromSensorData(int i) throws ESException {
+
+    }
+
+    @Override
+    public SensorData getDataFromSensor(int i) throws ESException {
+
+        return sensorManager.getDataFromSensor(i);
+
+    }
+
+    @Override
+    public void pauseSubscription(int i) throws ESException {
+
+    }
+
+    @Override
+    public void unPauseSubscription(int i) throws ESException {
+
+    }
+
+    @Override
+    public void setSensorConfig(int i, String s, Object o) throws ESException {
+
+    }
+
+    @Override
+    public Object getSensorConfigValue(int i, String s) throws ESException {
+        return null;
+    }
+
+    @Override
+    public void setGlobalConfig(String s, Object o) throws ESException {
+
+    }
+
+    @Override
+    public Object getGlobalConfig(String s) throws ESException {
+        return null;
+    }
+
+
 
     public class EyeGestureListener implements EyeGestureManager.Listener {
 
@@ -216,13 +296,10 @@ public class MainActivity extends Activity implements SensorEventListener,HeadGe
 
         @Override
         public void onDetected(final EyeGesture eyeGesture) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+            Log.v("EYE",eyeGesture.name());
+            addcard();
 
-                    Log.v("EYE",eyeGesture.name());
-                }
-            });
+            Toast.makeText(getApplicationContext(),"Card Added",Toast.LENGTH_SHORT).show();
         }
     }
 }
