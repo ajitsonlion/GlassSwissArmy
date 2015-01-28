@@ -1,8 +1,18 @@
 package com.communication;
 
-import com.github.nkzawa.emitter.Emitter;
+
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.socketio.Acknowledge;
+import com.koushikdutta.async.http.socketio.ConnectCallback;
+import com.koushikdutta.async.http.socketio.EventCallback;
+import com.koushikdutta.async.http.socketio.JSONCallback;
+import com.koushikdutta.async.http.socketio.SocketIOClient;
+import com.koushikdutta.async.http.socketio.transport.SocketIOTransport;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 
@@ -18,26 +28,12 @@ public class SocketIOSingelton {
     public   Socket getSocket() {
 
         try {
-            socket=IO.socket("http://localhost");
+            socket = IO.socket("http://thesis-ajitsonlion.c9.io/");
+            socket.connect();
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
+
         }
-
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-
-            @Override
-            public void call(Object... args) {
-                socket.emit("foo", "hi");
-                socket.disconnect();
-            }
-
-        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-
-            @Override
-            public void call(Object... args) {}
-
-        });
-        socket.connect();
         return socket;
     }
 
@@ -52,7 +48,6 @@ public class SocketIOSingelton {
     public static SocketIOSingelton getInstance() throws URISyntaxException {
         if(instance == null) {
             instance = new SocketIOSingelton();
-
 
         }
         return instance;

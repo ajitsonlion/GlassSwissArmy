@@ -50,7 +50,7 @@ public class HeadGestureDetector {
         for (int i = 0; i < REQUIRED_SENSORS.length; i++) {
             Sensor sensor = mSensorManager.getDefaultSensor(REQUIRED_SENSORS[i]);
             if (sensor != null) {
-                Log.d(TAG, "registered:" + sensor.getName());
+                //   Log.d(TAG, "registered:" + sensor.getName());
                 mSensorManager.registerListener(mSensorEventListener, sensor, SENSOR_RATES[i]);
             }
         }
@@ -115,7 +115,7 @@ public class HeadGestureDetector {
 
                 // state timeout check
                 if (event.timestamp - mLastStateChanged > STATE_TIMEOUT_NSEC && mState != State.IDLE) {
-                    Log.d(TAG, "state timeouted");
+                    //   Log.d(TAG, "state timeouted");
                     mLastStateChanged = event.timestamp;
                     mState = State.IDLE;
                     numberOfHeadShakes=0;
@@ -131,7 +131,7 @@ public class HeadGestureDetector {
                 } else if (maxVelocityIndex == 0) {
                     if (orientationVelocity[0] < -MIN_MOVE_ANGULAR_VELOCITY) {
                         if (mState == State.IDLE) {
-                              Log.d("HEAD", "isNod");
+                            //  Log.d("HEAD", "isNod");
                             mState = State.GO_DOWN;
                             mLastStateChanged = event.timestamp;
                             if (mListener != null) {
